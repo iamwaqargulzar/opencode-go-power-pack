@@ -15,6 +15,19 @@ $ConfigDir = Join-Path $env:USERPROFILE '.config\opencode'
 $pass = 0
 $fail = 0
 
+function Exit-WithPause($code = 0) {
+  Write-Host ""
+  Write-Host "  Press any key to close this window..." -ForegroundColor DarkGray
+  try { $null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown') } catch { Read-Host "  Press Enter to close" }
+  exit $code
+}
+
+trap {
+  Write-Host ""
+  Write-Host "  UNEXPECTED ERROR: $($_.Exception.Message)" -ForegroundColor Red
+  Exit-WithPause 1
+}
+
 function Check($label, $condition) {
   if ($condition) {
     Write-Host "  [PASS] $label" -ForegroundColor Green; $script:pass++
@@ -102,7 +115,4 @@ if ($fail -gt 0) {
   Write-Host "  All checks passed. Restart opencode for changes to take effect." -ForegroundColor Green
   $code = 0
 }
-Write-Host ""
-Write-Host "  Press any key to close this window..." -ForegroundColor DarkGray
-$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown')
-exit $code
+Exit-WithPause $code

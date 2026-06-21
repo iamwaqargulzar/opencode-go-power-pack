@@ -41,11 +41,24 @@ function Write-Warn($msg) { Write-Host "  [WARN] $msg" -ForegroundColor Yellow }
 function Write-Info($msg) { Write-Host "  $msg" -ForegroundColor Gray }
 function Write-Err($msg)  { Write-Host "  [ERR] $msg" -ForegroundColor Red }
 
+function Exit-WithPause($code = 0) {
+  Write-Host ""
+  Write-Host "  Press any key to close this window..." -ForegroundColor DarkGray
+  try { $null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown') } catch { Read-Host "  Press Enter to close" }
+  exit $code
+}
+
+trap {
+  Write-Host ""
+  Write-Host "  UNEXPECTED ERROR: $($_.Exception.Message)" -ForegroundColor Red
+  Exit-WithPause 1
+}
+
 if (-not (Test-Path -LiteralPath $ManifestPath)) {
   Write-Err "Manifest not found: $ManifestPath"
   Write-Err "Cannot safely uninstall without the manifest."
   Write-Err "You can manually delete ~/.config/opencode/ to reset to stock."
-  exit 1
+  Exit-WithPause 1
 }
 
 $manifest = Get-Content -LiteralPath $ManifestPath -Raw | ConvertFrom-Json
@@ -217,6 +230,4 @@ Write-Host ""
 if ($DryRun) {
   Write-Host "  (DRY-RUN: no changes were actually made)" -ForegroundColor Magenta
 }
-Write-Host ""
-Write-Host "  Press any key to close this window..." -ForegroundColor DarkGray
-$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown')
+Exit-WithPause 0

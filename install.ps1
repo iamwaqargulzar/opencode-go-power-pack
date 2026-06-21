@@ -55,6 +55,21 @@ function Invoke-Safe($exe, $args) {
   return $LASTEXITCODE -eq 0
 }
 
+function Exit-WithPause($code = 0) {
+  Write-Host ""
+  Write-Host "  Press any key to close this window..." -ForegroundColor DarkGray
+  try { $null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown') } catch { Read-Host "  Press Enter to close" }
+  exit $code
+}
+
+# Catch any unhandled errors so the window doesn't close before the user can read them
+trap {
+  Write-Host ""
+  Write-Host "  UNEXPECTED ERROR: $($_.Exception.Message)" -ForegroundColor Red
+  $_.ScriptStackTrace | ForEach-Object { Write-Host "    $_" -ForegroundColor DarkGray }
+  Exit-WithPause 1
+}
+
 $manifest = [ordered]@{
   version = '1.0.0'
   tier = $Tier
@@ -118,8 +133,7 @@ if ($missing.Count -gt 0) {
   Write-Host "  Install the above tools, then re-run this script." -ForegroundColor Yellow
   Write-Host ""
   Write-Host "  Press any key to close this window..." -ForegroundColor DarkGray
-  $null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown')
-  exit 1
+  Exit-WithPause 1
 }
 
 # ── Preflight: recommended prerequisites ───────────────────────────────────
@@ -462,7 +476,7 @@ if (-not $SkipMcp) {
     'repomix@latest',
     '@sriinnu/pakt'
   )
-  if ($Tier -in @('standard','full')) { $npmMcps += @('code-review-graph') }
+  if ($Tier -in @('standard','full')) { $npmMcps += @() }
   if ($Tier -eq 'full') { $npmMcps += @('headroom-ai') }
 
   foreach ($pkg in $npmMcps) {
@@ -482,6 +496,27 @@ if (-not $SkipMcp) {
     }
   } else {
     Write-Warn 'uvx not available — skipping Python MCP prefetch'
+  }
+
+  # code-review-graph (pip package, NOT npm)
+  if ($Tier -in @('standard','full')) {
+    Write-Info 'Installing code-review-graph via pip...'
+    if (Test-Command 'pip') {
+      $ok = Invoke-Safe 'pip' @('install','code-review-graph')
+      if ($ok) {
+        Write-Ok 'code-review-graph installed via pip'
+        $manifest.packages += 'code-review-graph'
+      } else {
+        Write-Warn 'code-review-graph pip install failed — install manually: pip install code-review-graph'
+      }
+    } elseif (Test-Command 'uvx') {
+      Write-Info 'pip not found, trying uvx...'
+      $ok = Invoke-Safe 'uvx' @('--from','code-review-graph','code-review-graph','--help')
+      if ($ok) { Write-Ok 'code-review-graph available via uvx'; $manifest.packages += 'code-review-graph' }
+      else { Write-Warn 'code-review-graph install failed — install manually: pip install code-review-graph' }
+    } else {
+      Write-Warn 'Neither pip nor uvx available — code-review-graph requires Python. Install: pip install code-review-graph'
+    }
   }
 } else {
   Write-Step 'Skip MCP prefetch (-SkipMcp)'
@@ -584,6 +619,4 @@ Write-Host "  Config is loaded once at startup and is not hot-reloaded." -Foregr
 Write-Host ""
 Write-Host "  To revert: .\uninstall.ps1 -Full" -ForegroundColor Gray
 Write-Host "  To toggle models: .\toggle-models.ps1 status" -ForegroundColor Gray
-Write-Host ""
-Write-Host "  Press any key to close this window..." -ForegroundColor DarkGray
-$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown')
+Exit-WithPause 0

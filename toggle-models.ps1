@@ -29,10 +29,23 @@ $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 $ProfilesDir = Join-Path $ConfigDir 'profiles'
 $MultiProfile = Join-Path $ProfilesDir 'multi-models.json'
 
+function Exit-WithPause($code = 0) {
+  Write-Host ""
+  Write-Host "  Press any key to close this window..." -ForegroundColor DarkGray
+  try { $null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown') } catch { Read-Host "  Press Enter to close" }
+  exit $code
+}
+
+trap {
+  Write-Host ""
+  Write-Host "  UNEXPECTED ERROR: $($_.Exception.Message)" -ForegroundColor Red
+  Exit-WithPause 1
+}
+
 if (-not (Test-Path -LiteralPath $ConfigFile)) {
   Write-Host "Config not found: $ConfigFile" -ForegroundColor Red
   Write-Host "Run install.ps1 first." -ForegroundColor Yellow
-  exit 1
+  Exit-WithPause 1
 }
 
 $cfg = Get-Content -LiteralPath $ConfigFile -Raw | ConvertFrom-Json
@@ -134,6 +147,4 @@ switch ($Action) {
   'single' { Set-Single }
 }
 
-Write-Host ""
-Write-Host "  Press any key to close this window..." -ForegroundColor DarkGray
-$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown')
+Exit-WithPause 0

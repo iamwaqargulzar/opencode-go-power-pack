@@ -39,6 +39,9 @@ done
 
 case "$TIER" in lean|standard|full) ;; *) echo "Invalid tier: $TIER"; exit 1 ;; esac
 
+# Catch errors so the user can read the output before the terminal closes
+trap 'echo ""; echo "  ERROR on line $LINENO: $BASH_COMMAND"; echo "  Press Enter to close..."; read -r; exit 1' ERR
+
 # ── Paths ──────────────────────────────────────────────────────────────────
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 CONFIG_DIR="${HOME}/.config/opencode"
@@ -390,7 +393,6 @@ if ! $SKIP_MCP; then
     "repomix@latest"
     "@sriinnu/pakt"
   )
-  [[ "$TIER" == "standard" || "$TIER" == "full" ]] && NPM_MCPS+=("code-review-graph")
   [[ "$TIER" == "full" ]] && NPM_MCPS+=("headroom-ai")
 
   for pkg in "${NPM_MCPS[@]}"; do
@@ -407,6 +409,20 @@ if ! $SKIP_MCP; then
     done
   else
     warn "uvx not available — skipping Python MCP prefetch"
+  fi
+
+  # code-review-graph (pip package, NOT npm)
+  if [[ "$TIER" == "standard" || "$TIER" == "full" ]]; then
+    info "Installing code-review-graph via pip..."
+    if has pip; then
+      run pip install code-review-graph && ok "code-review-graph installed via pip" || warn "code-review-graph pip install failed"
+      MANIFEST_PKGS+=("code-review-graph")
+    elif has uvx; then
+      run uvx --from code-review-graph code-review-graph --help && ok "code-review-graph available via uvx" || warn "code-review-graph install failed"
+      MANIFEST_PKGS+=("code-review-graph")
+    else
+      warn "Neither pip nor uvx available — code-review-graph requires Python"
+    fi
   fi
 else
   step "Skip MCP prefetch (--skip-mcp)"
