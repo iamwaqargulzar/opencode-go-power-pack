@@ -1,0 +1,72 @@
+name: Verify install
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  verify-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install uv
+        run: pip install uv
+      - name: Run installer (standard, skip MCP prefetch)
+        shell: pwsh
+        run: .\install.ps1 -Tier standard -SkipMcp -Force
+      - name: Run verify
+        shell: pwsh
+        run: .\verify.ps1
+      - name: Run uninstaller
+        shell: pwsh
+        run: .\uninstall.ps1 -Full
+
+  verify-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install uv
+        run: pip install uv
+      - name: Make scripts executable
+        run: chmod +x install.sh verify.sh uninstall.sh
+      - name: Run installer (standard, skip MCP prefetch)
+        run: ./install.sh --tier standard --skip-mcp --force
+      - name: Run verify
+        run: ./verify.sh
+      - name: Run uninstaller
+        run: ./uninstall.sh --full
+
+  verify-macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install uv
+        run: pip install uv
+      - name: Make scripts executable
+        run: chmod +x install.sh verify.sh uninstall.sh
+      - name: Run installer (lean, skip MCP prefetch)
+        run: ./install.sh --tier lean --skip-mcp --force
+      - name: Run verify
+        run: ./verify.sh
+      - name: Run uninstaller
+        run: ./uninstall.sh --full

@@ -1,0 +1,64 @@
+name: Feature request
+description: Suggest a new skill, agent, MCP server, CLI, or improvement
+title: "[FEATURE] "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for the suggestion! Tell us what capability is missing and how you'd like it added.
+  - type: textarea
+    id: gap
+    attributes:
+      label: The capability gap
+      description: What can't you do today that you want to do?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed addition
+      description: What should be added? A skill, agent, MCP server, CLI, config option, or doc?
+    validations:
+      required: true
+  - type: dropdown
+    id: component
+    attributes:
+      label: Component type
+      options:
+        - Skill (SKILL.md)
+        - Agent (agent .md)
+        - Slash command (command .md)
+        - MCP server
+        - External CLI
+        - Config option
+        - Documentation
+        - Other
+    validations:
+      required: true
+  - type: dropdown
+    id: tier
+    attributes:
+      label: Suggested tier
+      options:
+        - lean
+        - standard
+        - full
+        - new tier
+        - not sure
+    validations:
+      required: true
+  - type: textarea
+    id: research
+    attributes:
+      label: Supporting research / benchmarks / repos
+      description: Any evidence this works? Star counts, benchmark results, repo URLs.
+    validations:
+      required: false
+  - type: textarea
+    id: integration
+    attributes:
+      label: How should it integrate?
+      description: MCP server config? Skill frontmatter? Agent definition? AGENTS.md instruction? External CLI via bash?
+    validations:
+      required: false

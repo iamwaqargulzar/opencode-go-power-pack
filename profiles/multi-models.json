@@ -1,0 +1,18 @@
+﻿{
+  "_comment": "Per-agent model map for toggle-models.ps1/sh multi mode. These are the OpenCode-Go Power Pack defaults. Edit this file to customize multi-mode assignments; the toggle script reads it on every 'multi' invocation.",
+  "model": "opencode-go/glm-5.2",
+  "small_model": "opencode-go/deepseek-v4-flash",
+  "agents": {
+    "build": "opencode-go/glm-5.2",
+    "plan": "opencode-go/deepseek-v4-pro",
+    "reviewer": "opencode-go/qwen3.7-max",
+    "explorer": "opencode-go/deepseek-v4-flash",
+    "data-engineer": "opencode-go/kimi-k2.7-code",
+    "frontend-engineer": "opencode-go/glm-5.2",
+    "devops-engineer": "opencode-go/deepseek-v4-pro",
+    "doc-writer": "opencode-go/mimo-v2.5",
+    "title": "opencode-go/deepseek-v4-flash",
+    "summary": "opencode-go/deepseek-v4-flash",
+    "compaction": "opencode-go/deepseek-v4-flash"
+  }
+}
