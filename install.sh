@@ -12,7 +12,7 @@
 #   ./install.sh --dry-run       # show what would be installed
 #   ./install.sh --force         # overwrite without prompting
 
-set -euo pipefail
+set -uo pipefail
 
 # ── Defaults ───────────────────────────────────────────────────────────────
 TIER="standard"
@@ -39,8 +39,10 @@ done
 
 case "$TIER" in lean|standard|full) ;; *) echo "Invalid tier: $TIER"; exit 1 ;; esac
 
-# Catch errors so the user can read the output before the terminal closes
-trap 'echo ""; echo "  ERROR on line $LINENO: $BASH_COMMAND"; echo "  Press Enter to close..."; read -r; exit 1' ERR
+# Error trap — only enabled AFTER preflight so optional-tool checks don't trigger it
+enable_error_trap() {
+  trap 'echo ""; echo "  ERROR on line $LINENO: $BASH_COMMAND"; echo "  Press Enter to close..."; [ -t 0 ] && read -r; exit 1' ERR
+}
 
 # ── Paths ──────────────────────────────────────────────────────────────────
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -183,6 +185,9 @@ else
   warn "auth.json not found at $AUTH_FILE"
   warn "  If you haven't used opencode yet, this is normal. Run /connect after install."
 fi
+
+# Enable error trap for the actual install steps (preflight is done)
+enable_error_trap
 
 # ── Backup existing config ─────────────────────────────────────────────────
 step "Backup existing config"
