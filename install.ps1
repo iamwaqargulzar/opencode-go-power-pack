@@ -49,10 +49,17 @@ function Test-Command($name) {
   return [bool](Get-Command $name -ErrorAction SilentlyContinue)
 }
 
-function Invoke-Safe($exe, $args) {
-  if ($DryRun) { Write-Info "DRY-RUN: $exe $($args -join ' ')"; return $true }
-  & $exe @args 2>&1 | ForEach-Object { Write-Info $_ }
-  return $LASTEXITCODE -eq 0
+function Invoke-Safe($exe, $argList) {
+  if ($DryRun) { Write-Info "DRY-RUN: $exe $($argList -join ' ')"; return $true }
+  # Native command stderr must not become terminating errors or trigger traps.
+  $prevEAP = $ErrorActionPreference
+  $ErrorActionPreference = 'SilentlyContinue'
+  try {
+    & $exe @argList
+    return $LASTEXITCODE -eq 0
+  } finally {
+    $ErrorActionPreference = $prevEAP
+  }
 }
 
 function Exit-WithPause($code = 0) {
@@ -490,22 +497,18 @@ if (-not $SkipMcp) {
   if ($Tier -eq 'full') { $npmMcps += @('headroom-ai') }
 
   foreach ($pkg in $npmMcps) {
-    Write-Info "Prefetching $pkg..."
-    $ok = Invoke-Safe 'npx' @('-y',$pkg,'--help')
+    Write-Info "Prefetching $pkg (npm global install)..."
+    $ok = Invoke-Safe 'npm' @('install','-g',$pkg)
     if ($ok) { Write-Ok $pkg } else { Write-Warn "$pkg prefetch failed (non-fatal — will fetch on first use)" }
     $manifest.packages += $pkg
   }
 
   $uvxMcps = @('mcp-server-fetch','mcp-server-time','mcp-server-git')
   if (Test-Command 'uvx') {
-    foreach ($pkg in $uvxMcps) {
-      Write-Info "Prefetching $pkg..."
-      $ok = Invoke-Safe 'uvx' @($pkg,'--help')
-      if ($ok) { Write-Ok $pkg } else { Write-Warn "$pkg prefetch failed (non-fatal)" }
-      $manifest.packages += $pkg
-    }
+    Write-Info 'uvx MCP servers (mcp-server-fetch/time/git) will be fetched on first opencode start.'
+    foreach ($pkg in $uvxMcps) { $manifest.packages += $pkg }
   } else {
-    Write-Warn 'uvx not available — skipping Python MCP prefetch'
+    Write-Warn 'uvx not available — Python MCP servers will fetch on first use if uvx is installed later'
   }
 
   # code-review-graph (pip package, NOT npm)
@@ -555,7 +558,7 @@ if ($Tier -in @('standard','full')) {
   # gtr (git-worktree-runner) — needs git
   if (Test-Command 'git') {
     Write-Info 'Installing gtr (git-worktree-runner)...'
-    $gtrScript = Join-Path $ScriptDir '..' 'git-worktree-runner' 'install.sh'
+    $gtrScript = Join-Path (Join-Path (Join-Path $ScriptDir '..') 'git-worktree-runner') 'install.sh'
     # On Windows, gtr may need WSL. Print instructions.
     Write-Warn 'gtr (git-worktree-runner) on native Windows may need WSL.'
     Write-Warn 'Install manually: curl -fsSL https://raw.githubusercontent.com/coderabbitai/git-worktree-runner/main/install.sh | sh'

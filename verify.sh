@@ -46,10 +46,10 @@ if [[ -f "${CONFIG_DIR}/opencode.json" ]]; then
     check "compaction.prune is true" "\"$PYTHON\" -c \"import json; assert json.load(open('${CONFIG_DIR}/opencode.json')).get('compaction',{}).get('prune')==True\""
     check "permission.bash allows *" "\"$PYTHON\" -c \"import json; assert json.load(open('${CONFIG_DIR}/opencode.json')).get('permission',{}).get('bash',{}).get('*')=='allow'\""
     check "permission.bash denies rm -rf /" "\"$PYTHON\" -c \"import json; assert json.load(open('${CONFIG_DIR}/opencode.json')).get('permission',{}).get('bash',{}).get('rm -rf / *')=='deny'\""
-    MCP_COUNT=$("$PYTHON" -c "import json; print(len(json.load(open('${CONFIG_DIR}/opencode.json')).get('mcp',{})))")
-    check "MCP servers configured ($MCP_COUNT)" "[[ $MCP_COUNT -ge 10 ]]"
-    AGENT_COUNT=$("$PYTHON" -c "import json; print(len(json.load(open('${CONFIG_DIR}/opencode.json')).get('agent',{})))")
-    check "Agents configured ($AGENT_COUNT)" "[[ $AGENT_COUNT -ge 8 ]]"
+    MCP_COUNT=$("$PYTHON" -c "import json; print(len(json.load(open('${CONFIG_DIR}/opencode.json')).get('mcp',{})))" 2>/dev/null)
+    check "MCP servers configured (${MCP_COUNT:-0})" "[[ ${MCP_COUNT:-0} -ge 10 ]]"
+    AGENT_COUNT=$("$PYTHON" -c "import json; print(len(json.load(open('${CONFIG_DIR}/opencode.json')).get('agent',{})))" 2>/dev/null)
+    check "Agents configured (${AGENT_COUNT:-0})" "[[ ${AGENT_COUNT:-0} -ge 8 ]]"
   else
     info "Python not available — skipping config-content checks"
   fi

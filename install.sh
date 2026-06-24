@@ -414,19 +414,18 @@ if ! $SKIP_MCP; then
   [[ "$TIER" == "full" ]] && NPM_MCPS+=("headroom-ai")
 
   for pkg in "${NPM_MCPS[@]}"; do
-    info "Prefetching $pkg..."
-    run npx -y "$pkg" --help && ok "$pkg" || warn "$pkg prefetch failed (non-fatal)"
+    info "Prefetching $pkg (npm global install)..."
+    run npm install -g "$pkg" && ok "$pkg" || warn "$pkg prefetch failed (non-fatal — will fetch on first use)"
     MANIFEST_PKGS+=("$pkg")
   done
 
   if has uvx; then
+    info "uvx MCP servers (mcp-server-fetch/time/git) will be fetched on first opencode start."
     for pkg in mcp-server-fetch mcp-server-time mcp-server-git; do
-      info "Prefetching $pkg..."
-      run uvx "$pkg" --help && ok "$pkg" || warn "$pkg prefetch failed (non-fatal)"
       MANIFEST_PKGS+=("$pkg")
     done
   else
-    warn "uvx not available — skipping Python MCP prefetch"
+    warn "uvx not available — Python MCP servers will fetch on first use if uvx is installed later"
   fi
 
   # code-review-graph (pip package, NOT npm)

@@ -19,6 +19,8 @@ desktop.ini
 # opencode install artifacts (created at install time, not in repo)
 .power-pack-manifest.json
 opencode.json.backup-*
+.agents/
+skills-lock.json
 
 # Temp
 *.tmp
