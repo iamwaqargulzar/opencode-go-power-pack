@@ -7,7 +7,7 @@
 #   ./toggle-models.sh single opencode-go/kimi-k2.7-code  # single + pick model
 #   ./toggle-models.sh status                 # show current mode + agent models
 
-set -euo pipefail
+set -uo pipefail
 
 ACTION="${1:-status}"
 MODEL_ID="${2:-}"
@@ -15,6 +15,12 @@ MODEL_ID="${2:-}"
 CONFIG_DIR="${HOME}/.config/opencode"
 CONFIG_FILE="${CONFIG_DIR}/opencode.json"
 MULTI_PROFILE="${CONFIG_DIR}/profiles/multi-models.json"
+
+# Find working Python (Windows has non-functional Microsoft Store stubs for python3)
+PYTHON=""
+for py in python py python3; do
+  if "$py" --version >/dev/null 2>&1; then PYTHON="$py"; break; fi
+done
 
 case "$ACTION" in multi|single|status) ;; *)
   echo "Usage: $0 {multi|single [model-id]|status}"
@@ -30,13 +36,13 @@ show_status() {
   echo ""
   echo "=== Model Toggle Status ==="
   local top_model small_model
-  top_model=$(python3 -c "import json; print(json.load(open('$CONFIG_FILE')).get('model','?'))")
-  small_model=$(python3 -c "import json; print(json.load(open('$CONFIG_FILE')).get('small_model','?'))")
+  top_model=$("$PYTHON" -c "import json; print(json.load(open('$CONFIG_FILE')).get('model','?'))")
+  small_model=$("$PYTHON" -c "import json; print(json.load(open('$CONFIG_FILE')).get('small_model','?'))")
   echo "  Top-level model: $top_model"
   echo "  Small model:     $small_model"
   echo ""
   echo "  Agent models:"
-  python3 -c "
+  "$PYTHON" -c "
 import json
 cfg = json.load(open('$CONFIG_FILE'))
 agents = cfg.get('agent', {})
@@ -65,7 +71,7 @@ set_multi() {
     echo "Run install.sh first to copy profiles."
     exit 1
   fi
-  python3 -c "
+  "$PYTHON" -c "
 import json
 with open('$CONFIG_FILE') as f: cfg = json.load(f)
 with open('$MULTI_PROFILE') as f: prof = json.load(f)
@@ -87,7 +93,7 @@ print('  Per-agent models restored from profiles/multi-models.json')
 
 set_single() {
   local target="${MODEL_ID}"
-  python3 -c "
+  "$PYTHON" -c "
 import json
 with open('$CONFIG_FILE') as f: cfg = json.load(f)
 target = '${target}' or cfg.get('model', 'opencode-go/glm-5.2')

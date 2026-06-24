@@ -1,4 +1,4 @@
-﻿#!/usr/bin/env bash
+#!/usr/bin/env bash
 # OpenCode-Go Power Pack installer (macOS/Linux)
 # Provisions opencode with autonomous agents, MCP servers, skills, spec-driven dev,
 # and a lossless token-reduction stack — locked to the opencode-go subscription.
@@ -128,13 +128,16 @@ fi
 # ── Preflight: recommended prerequisites ───────────────────────────────────
 step "Preflight: recommended prerequisites (warnings only)"
 
-# python
-if has python3 || has python; then
-  PYTHON_BIN="python3"; has python3 || PYTHON_BIN="python"
-  PY_VER=$($PYTHON_BIN --version 2>&1)
-  ok "python: $PY_VER"
+# python — find a working one (Windows has non-functional Microsoft Store stubs for python3)
+PYTHON=""
+for py in python py python3; do
+  if "$py" --version >/dev/null 2>&1; then PYTHON="$py"; break; fi
+done
+if [[ -n "$PYTHON" ]]; then
+  PY_VER=$("$PYTHON" --version 2>&1)
+  ok "python ($PYTHON): $PY_VER"
 else
-  warn "python NOT found. Install: https://www.python.org/downloads/"
+  warn "python NOT found (or only the Microsoft Store stub is present). Install: https://www.python.org/downloads/"
   warn "  Without python: no uvx, no Python MCP servers, no code-review-graph, no libcst."
 fi
 
@@ -175,7 +178,7 @@ step "Preflight: opencode-go subscription"
 
 AUTH_FILE="${HOME}/.local/share/opencode/auth.json"
 if [[ -f "$AUTH_FILE" ]]; then
-  if python3 -c "import json; d=json.load(open('$AUTH_FILE')); assert 'opencode-go' in d" 2>/dev/null; then
+  if [[ -n "$PYTHON" ]] && "$PYTHON" -c "import json; d=json.load(open('$AUTH_FILE')); assert 'opencode-go' in d" 2>/dev/null; then
     ok "opencode-go: authenticated"
   else
     warn "opencode-go subscription NOT found in auth.json."
@@ -225,7 +228,11 @@ step "Write opencode.json"
 TARGET_CONFIG="${CONFIG_DIR}/opencode.json"
 if ! $DRY_RUN; then
   # Read the template, rewrite ["cmd","/c","npx",...] → ["npx",...] for *nix
-  python3 -c "
+  if [[ -z "$PYTHON" ]]; then
+    warn "Python not available — copying config template as-is (no MCP command rewrite for *nix)"
+    cp "${SCRIPT_DIR}/opencode.json" "$TARGET_CONFIG"
+  else
+    "$PYTHON" -c "
 import json, sys
 with open('${SCRIPT_DIR}/opencode.json') as f:
     cfg = json.load(f)
@@ -258,8 +265,7 @@ except Exception:
 with open('${TARGET_CONFIG}', 'w') as f:
     json.dump(cfg, f, indent=2)
 " 2>&1 | while IFS= read -r line; do info "$line"; done
-  MANIFEST_FILES+=("$TARGET_CONFIG")
-fi
+  fi
 ok "config: $TARGET_CONFIG (tier=$TIER)"
 
 # ── Copy agents ────────────────────────────────────────────────────────────
@@ -503,21 +509,34 @@ fi
 # ── Write manifest ─────────────────────────────────────────────────────────
 step "Write manifest"
 if ! $DRY_RUN; then
-  python3 -c "
-import json
-manifest = {
-    'version': '1.0.0',
-    'tier': '${TIER}',
-    'files': $(printf '%s\n' "${MANIFEST_FILES[@]}" | python3 -c "import sys,json; print(json.dumps([l.strip() for l in sys.stdin if l.strip()]))"),
-    'dirs': $(printf '%s\n' "${MANIFEST_DIRS[@]}" | python3 -c "import sys,json; print(json.dumps([l.strip() for l in sys.stdin if l.strip()]))"),
-    'packages': $(printf '%s\n' "${MANIFEST_PKGS[@]}" | python3 -c "import sys,json; print(json.dumps([l.strip() for l in sys.stdin if l.strip()]))"),
-}
-with open('${MANIFEST_PATH}', 'w') as f:
-    json.dump(manifest, f, indent=2)
-" 2>/dev/null || {
-    # Fallback if python3 array parsing fails
-    echo "{\"version\":\"1.0.0\",\"tier\":\"${TIER}\"}" > "$MANIFEST_PATH"
-  }
+  # Write manifest as simple JSON without relying on Python
+  {
+    printf '{\n'
+    printf '  "version": "1.0.0",\n'
+    printf '  "tier": "%s",\n' "$TIER"
+    printf '  "files": ['
+    first=1; for f in "${MANIFEST_FILES[@]}"; do
+      [[ -z "$f" ]] && continue
+      [[ $first -eq 1 ]] && first=0 || printf ','
+      printf '"%s"' "$f"
+    done
+    printf '],\n'
+    printf '  "dirs": ['
+    first=1; for d in "${MANIFEST_DIRS[@]}"; do
+      [[ -z "$d" ]] && continue
+      [[ $first -eq 1 ]] && first=0 || printf ','
+      printf '"%s"' "$d"
+    done
+    printf '],\n'
+    printf '  "packages": ['
+    first=1; for p in "${MANIFEST_PKGS[@]}"; do
+      [[ -z "$p" ]] && continue
+      [[ $first -eq 1 ]] && first=0 || printf ','
+      printf '"%s"' "$p"
+    done
+    printf ']\n'
+    printf '}\n'
+  } > "$MANIFEST_PATH"
   ok "Manifest: $MANIFEST_PATH"
 fi
 

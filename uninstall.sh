@@ -1,4 +1,4 @@
-﻿#!/usr/bin/env bash
+#!/usr/bin/env bash
 # Uninstall OpenCode-Go Power Pack and restore opencode to stock configuration.
 #
 # Usage:

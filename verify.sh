@@ -1,12 +1,18 @@
-﻿#!/usr/bin/env bash
+#!/usr/bin/env bash
 # Post-install smoke test for OpenCode-Go Power Pack.
 # Verifies that the installer wrote all expected files and key tools are available.
 
-set -euo pipefail
+set -uo pipefail
 
 CONFIG_DIR="${HOME}/.config/opencode"
 PASS=0
 FAIL=0
+
+# Find working Python (Windows has non-functional Microsoft Store stubs for python3)
+PYTHON=""
+for py in python py python3; do
+  if "$py" --version >/dev/null 2>&1; then PYTHON="$py"; break; fi
+done
 
 check() {
   if eval "$2"; then
@@ -17,6 +23,8 @@ check() {
 }
 
 has() { command -v "$1" &>/dev/null; }
+
+info() { printf "  \033[90m%s\033[0m\n" "$1"; }
 
 echo ""
 echo "=== OpenCode-Go Power Pack — Post-install Verification ==="
@@ -31,16 +39,20 @@ check "profiles/multi-models.json exists" "[[ -f '${CONFIG_DIR}/profiles/multi-m
 # Config content
 echo -e "\n--- Config content ---"
 if [[ -f "${CONFIG_DIR}/opencode.json" ]]; then
-  check "model is opencode-go/*" "python3 -c \"import json; assert json.load(open('${CONFIG_DIR}/opencode.json')).get('model','').startswith('opencode-go/')\""
-  check "small_model is opencode-go/*" "python3 -c \"import json; assert json.load(open('${CONFIG_DIR}/opencode.json')).get('small_model','').startswith('opencode-go/')\""
-  check "enabled_providers locked to opencode-go" "python3 -c \"import json; assert 'opencode-go' in json.load(open('${CONFIG_DIR}/opencode.json')).get('enabled_providers',[])\""
-  check "compaction.prune is true" "python3 -c \"import json; assert json.load(open('${CONFIG_DIR}/opencode.json')).get('compaction',{}).get('prune')==True\""
-  check "permission.bash allows *" "python3 -c \"import json; assert json.load(open('${CONFIG_DIR}/opencode.json')).get('permission',{}).get('bash',{}).get('*')=='allow'\""
-  check "permission.bash denies rm -rf /" "python3 -c \"import json; assert json.load(open('${CONFIG_DIR}/opencode.json')).get('permission',{}).get('bash',{}).get('rm -rf / *')=='deny'\""
-  MCP_COUNT=$(python3 -c "import json; print(len(json.load(open('${CONFIG_DIR}/opencode.json')).get('mcp',{})))")
-  check "MCP servers configured ($MCP_COUNT)" "[[ $MCP_COUNT -ge 10 ]]"
-  AGENT_COUNT=$(python3 -c "import json; print(len(json.load(open('${CONFIG_DIR}/opencode.json')).get('agent',{})))")
-  check "Agents configured ($AGENT_COUNT)" "[[ $AGENT_COUNT -ge 8 ]]"
+  if [[ -n "$PYTHON" ]]; then
+    check "model is opencode-go/*" "\"$PYTHON\" -c \"import json; assert json.load(open('${CONFIG_DIR}/opencode.json')).get('model','').startswith('opencode-go/')\""
+    check "small_model is opencode-go/*" "\"$PYTHON\" -c \"import json; assert json.load(open('${CONFIG_DIR}/opencode.json')).get('small_model','').startswith('opencode-go/')\""
+    check "enabled_providers locked to opencode-go" "\"$PYTHON\" -c \"import json; assert 'opencode-go' in json.load(open('${CONFIG_DIR}/opencode.json')).get('enabled_providers',[])\""
+    check "compaction.prune is true" "\"$PYTHON\" -c \"import json; assert json.load(open('${CONFIG_DIR}/opencode.json')).get('compaction',{}).get('prune')==True\""
+    check "permission.bash allows *" "\"$PYTHON\" -c \"import json; assert json.load(open('${CONFIG_DIR}/opencode.json')).get('permission',{}).get('bash',{}).get('*')=='allow'\""
+    check "permission.bash denies rm -rf /" "\"$PYTHON\" -c \"import json; assert json.load(open('${CONFIG_DIR}/opencode.json')).get('permission',{}).get('bash',{}).get('rm -rf / *')=='deny'\""
+    MCP_COUNT=$("$PYTHON" -c "import json; print(len(json.load(open('${CONFIG_DIR}/opencode.json')).get('mcp',{})))")
+    check "MCP servers configured ($MCP_COUNT)" "[[ $MCP_COUNT -ge 10 ]]"
+    AGENT_COUNT=$("$PYTHON" -c "import json; print(len(json.load(open('${CONFIG_DIR}/opencode.json')).get('agent',{})))")
+    check "Agents configured ($AGENT_COUNT)" "[[ $AGENT_COUNT -ge 8 ]]"
+  else
+    info "Python not available — skipping config-content checks"
+  fi
 fi
 
 # Agents
