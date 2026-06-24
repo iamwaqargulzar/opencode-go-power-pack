@@ -51,7 +51,9 @@ Check "profiles/multi-models.json exists" (Test-Path -LiteralPath (Join-Path $Co
 Write-Host "`n--- Config content ---" -ForegroundColor Yellow
 $cfgFile = Join-Path $ConfigDir 'opencode.json'
 if (Test-Path -LiteralPath $cfgFile) {
-  $cfg = Get-Content -LiteralPath $cfgFile -Raw | ConvertFrom-Json
+  $raw = Get-Content -LiteralPath $cfgFile -Raw
+  $raw = ($raw -split "`r?`n" | Where-Object { $_ -notmatch '^\s*//' }) -join "`r`n"
+  $cfg = $raw | ConvertFrom-Json
   Check "model is opencode-go/*" ($cfg.model -like 'opencode-go/*')
   Check "small_model is opencode-go/*" ($cfg.small_model -like 'opencode-go/*')
   Check "enabled_providers locked to opencode-go" ($cfg.enabled_providers -contains 'opencode-go')

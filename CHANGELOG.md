@@ -10,12 +10,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **Tiered installer** (`install.ps1` for Windows, `install.sh` for macOS/Linux) with three profiles:
   - `lean` — 10 MCP servers, superpowers + 15 custom skills, pure config token-reduction.
-  - `standard` (default) — 13 MCP servers, +7 reasoning/spec skills, +CodeRabbit skills, +GitHub Spec Kit, +skillgate DoD gate, +ast-outline/ast-grep/gtr CLIs.
-  - `full` — 18 MCP servers, +farmage(66)/addyosmani(24)/cherry-pick(10) skill packs, +arbor/provenant/headroom lossless context MCP, +APM multi-agent, +donegate CI gate, +coherence drift detector, +jscodeshift/libcst codemods, +aider.
+  - `standard` (default) — 12 MCP servers, +7 reasoning/spec skills, +CodeRabbit skills, +GitHub Spec Kit, +skillgate DoD gate, +ast-outline/ast-grep/gtr CLIs.
+  - `full` — 15 MCP servers, +farmage(66)/addyosmani(24)/cherry-pick(10) skill packs, +arbor/provenant/headroom lossless context MCP, +APM multi-agent, +donegate CI gate, +coherence drift detector, +jscodeshift/libcst codemods, +aider.
 - **8 custom agents**: build, plan, reviewer, explorer, data-engineer, frontend-engineer, devops-engineer, doc-writer (+ title/summary/compaction hidden agents). All locked to `opencode-go/*` models.
 - **7 slash commands**: /review, /plan, /test, /ship, /debug, /refactor, /docs.
 - **22 hand-authored skills** covering: opencode-go workflow, Windows PowerShell tooling, autonomous execution, token-budget awareness, repo-context packing, MCP orchestration, git-worktree parallelism, test-first verification, docs-as-code, data-pipeline patterns, docker-compose-first, CI-pipeline design, secrets hygiene, error-recovery protocol, progressive refinement, EARS requirements, property-based verification, reflexion loop, tree-of-thoughts decide, SWE-Debate self-critique, SWE-agent 5-step protocol, submit-time self-review.
-- **13 MCP servers** (standard tier): playwright, github, context7, sequential-thinking, think, fetch, filesystem, memory, time, git-utils, repomix, code-review-graph, pakt.
+- **12 MCP servers** (standard tier): playwright, github, context7, sequential-thinking, think, fetch, filesystem, memory, time, git-utils, repomix, code-review-graph, pakt.
 - **Lossless token-reduction stack**: prompt caching (`setCacheKey`), compaction prune, subagent delegation, LSP, ast-outline CLI, code-review-graph MCP (~82x reduction), PAKT MCP (lossless structured-data compression, p=0.50 comprehension).
 - **Spec-driven-development spine**: GitHub Spec Kit (`specify init --integration opencode`) + superpowers gated workflow + skillgate deterministic DoD gate.
 - **Reasoning disciplines** baked into AGENTS.md: SWE-agent 5-step protocol, submit-time self-review, Anthropic "think" tool usage, reflexion loop, tree-of-thoughts propose-3-score-proceed, SWE-Debate 3-reviewer self-critique.

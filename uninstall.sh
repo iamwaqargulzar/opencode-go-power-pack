@@ -153,7 +153,7 @@ fi
 if $REMOVE_MCP; then
   step "Remove MCP packages (npm global)"
   if command -v npm &>/dev/null; then
-    for pkg in @playwright/mcp @modelcontextprotocol/server-github @modelcontextprotocol/server-sequential-thinking @modelcontextprotocol/server-filesystem @modelcontextprotocol/server-memory think-mcp-server repomix @sriinnu/pakt @ast-grep/cli jscodeshift code-review-graph headroom-ai; do
+    for pkg in @playwright/mcp @modelcontextprotocol/server-github @modelcontextprotocol/server-sequential-thinking @modelcontextprotocol/server-filesystem @modelcontextprotocol/server-memory repomix @sriinnu/pakt @ast-grep/cli jscodeshift code-review-graph headroom-ai; do
       infoo "npm uninstall -g $pkg"
       if ! $DRY_RUN; then npm uninstall -g "$pkg" &>/dev/null || true; fi
     done

@@ -22,10 +22,6 @@ The pack configures MCP servers in `opencode.json`. The installer handles platfo
 - **Command:** `npx -y @modelcontextprotocol/server-sequential-thinking`
 - **Purpose:** Structured multi-step reasoning with revision and branching. Step-numbered thoughts, can revise earlier thoughts, can branch into alternative reasoning paths.
 
-### think
-- **Command:** `npx -y think-mcp-server`
-- **Purpose:** Anthropic "think" tool — pause-and-reflect scratchpad before actions. Measured +1.6% SWE-bench isolated gain (d=1.47, p<.001).
-
 ### fetch
 - **Command:** `uvx mcp-server-fetch`
 - **Purpose:** JS-rendered web fetch. Richer than built-in webfetch for dynamic pages (SPAs, JS-rendered content).

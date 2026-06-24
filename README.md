@@ -1,6 +1,6 @@
 ﻿# OpenCode-Go Power Pack
 
-> Make opencode-go as capable as Claude Code or Codex — autonomous agents, 18 MCP servers, spec-driven dev, lossless token reduction, battle-tested coding-agent patterns. One-command install.
+> Make opencode-go as capable as Claude Code or Codex — autonomous agents, 15 MCP servers, spec-driven dev, lossless token reduction, battle-tested coding-agent patterns. One-command install.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Platform: Windows | macOS | Linux](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-blue)](#quick-start)
@@ -16,7 +16,7 @@ A portable, shareable installer that provisions [opencode](https://opencode.ai) 
 One command installs:
 - **8 custom agents** with per-model orchestration (build, plan, reviewer, explorer, data-engineer, frontend-engineer, devops-engineer, doc-writer)
 - **7 slash commands** (/review, /plan, /test, /ship, /debug, /refactor, /docs)
-- **13–18 MCP servers** (playwright, github, context7, sequential-thinking, think, fetch, filesystem, memory, time, git-utils, repomix, code-review-graph, pakt, + more in full tier)
+- **12–15 MCP servers** (playwright, github, context7, sequential-thinking, fetch, filesystem, memory, time, git-utils, repomix, code-review-graph, pakt, + more in full tier)
 - **22 hand-authored skills** covering reasoning disciplines, spec adherence, token awareness, Windows tooling, domain patterns
 - **4 third-party skill packs** (superpowers, CodeRabbit, farmage, addyosmani) in full tier
 - **Spec-driven-development spine** (GitHub Spec Kit + superpowers gated workflow + skillgate DoD gate)
@@ -58,9 +58,9 @@ chmod +x install.sh verify.sh
 
 ```powershell
 # Windows
-.\install.ps1 -Tier full          # maximum capability (18 MCP, 4 skill packs)
+.\install.ps1 -Tier full          # maximum capability (15 MCP, 4 skill packs)
 .\install.ps1 -Tier lean          # minimal (10 MCP, superpowers + custom skills)
-.\install.ps1 -Tier standard      # default (13 MCP, CodeRabbit, Spec Kit, DoD gate)
+.\install.ps1 -Tier standard      # default (12 MCP, CodeRabbit, Spec Kit, DoD gate)
 .\install.ps1 -SkipMcp            # skip MCP prefetch
 .\install.ps1 -DryRun             # preview without installing
 ```

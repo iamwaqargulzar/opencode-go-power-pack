@@ -143,8 +143,16 @@ $warnings = @()
 
 # python (needed for uvx, Python MCP servers, code-review-graph, libcst)
 if (Test-Command 'python') {
-  $pyVer = (& python --version) 2>$null
-  Write-Ok "python: $pyVer"
+  $pyTest = & python -c "print('ok')" 2>&1
+  if ($pyTest -eq 'ok') {
+    $pyVer = (& python --version) 2>&1
+    Write-Ok "python: $pyVer"
+  } else {
+    $warnings += 'python'
+    Write-Warn "python found but doesn't work (likely the Microsoft Store stub). Install from https://www.python.org/downloads/"
+    Write-Warn "  Without python: no uvx, no Python MCP servers (fetch, time, git-utils),"
+    Write-Warn "  no code-review-graph. Significant functionality lost."
+  }
 } else {
   $warnings += 'python'
   Write-Warn "python NOT found. Install from https://www.python.org/downloads/"
@@ -282,7 +290,10 @@ Write-Step 'Write opencode.json'
 $targetConfig = Join-Path $ConfigDir 'opencode.json'
 if (-not $DryRun) {
   $srcConfig = Join-Path $ScriptDir 'opencode.json'
-  $cfg = Get-Content -LiteralPath $srcConfig -Raw | ConvertFrom-Json
+  $raw = Get-Content -LiteralPath $srcConfig -Raw
+  # Strip // comments (JSONC) before parsing — PowerShell 5.1 ConvertFrom-Json doesn't support comments
+  $raw = ($raw -split "`r?`n" | Where-Object { $_ -notmatch '^\s*//' }) -join "`r`n"
+  $cfg = $raw | ConvertFrom-Json
 
   # Strip _comment fields
   $cfg.PSObject.Properties | Where-Object { $_.Name -like '_comment*' } | ForEach-Object {
@@ -476,7 +487,6 @@ if (-not $SkipMcp) {
     'repomix@latest',
     '@sriinnu/pakt'
   )
-  if ($Tier -in @('standard','full')) { $npmMcps += @() }
   if ($Tier -eq 'full') { $npmMcps += @('headroom-ai') }
 
   foreach ($pkg in $npmMcps) {
@@ -610,7 +620,7 @@ Write-Host "  Config:         $targetConfig" -ForegroundColor White
 Write-Host "  Agents:         8" -ForegroundColor White
 Write-Host "  Commands:       7" -ForegroundColor White
 Write-Host "  Custom skills:  22" -ForegroundColor White
-$mcpCount = if ($Tier -eq 'lean') { 10 } elseif ($Tier -eq 'standard') { 12 } else { 17 }
+$mcpCount = if ($Tier -eq 'lean') { 10 } elseif ($Tier -eq 'standard') { 12 } else { 15 }
 Write-Host "  MCP servers:    $mcpCount" -ForegroundColor White
 Write-Host "  Manifest:       $ManifestPath" -ForegroundColor White
 Write-Host ""

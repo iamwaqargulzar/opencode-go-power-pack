@@ -187,7 +187,7 @@ if ($RemoveMcpDeps) {
     '@playwright/mcp','@modelcontextprotocol/server-github',
     '@modelcontextprotocol/server-sequential-thinking',
     '@modelcontextprotocol/server-filesystem','@modelcontextprotocol/server-memory',
-    'think-mcp-server','repomix','@sriinnu/pakt','@ast-grep/cli',
+    'repomix','@sriinnu/pakt','@ast-grep/cli',
     'jscodeshift','code-review-graph','headroom-ai'
   )
   foreach ($pkg in $npmPkgs) {

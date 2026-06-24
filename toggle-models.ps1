@@ -48,7 +48,9 @@ if (-not (Test-Path -LiteralPath $ConfigFile)) {
   Exit-WithPause 1
 }
 
-$cfg = Get-Content -LiteralPath $ConfigFile -Raw | ConvertFrom-Json
+$raw = Get-Content -LiteralPath $ConfigFile -Raw
+$raw = ($raw -split "`r?`n" | Where-Object { $_ -notmatch '^\s*//' }) -join "`r`n"
+$cfg = $raw | ConvertFrom-Json
 
 function Show-Status {
   Write-Host "`n=== Model Toggle Status ===" -ForegroundColor Cyan

@@ -122,6 +122,8 @@ if [[ ${#MISSING[@]} -gt 0 ]]; then
   printf "  \033[31mMISSING PREREQUISITES: %s\033[0m\n" "${MISSING[*]}"
   printf "  \033[33mInstall the above tools, then re-run this script.\033[0m\n"
   echo ""
+  printf "  Press Enter to close this window..."
+  read -r
   exit 1
 fi
 
@@ -233,9 +235,12 @@ if ! $DRY_RUN; then
     cp "${SCRIPT_DIR}/opencode.json" "$TARGET_CONFIG"
   else
     "$PYTHON" -c "
-import json, sys
+import json, sys, re
 with open('${SCRIPT_DIR}/opencode.json') as f:
-    cfg = json.load(f)
+    raw = f.read()
+# Strip // comments (JSONC) before parsing
+raw = '\n'.join(line for line in raw.splitlines() if not line.strip().startswith('//'))
+cfg = json.loads(raw)
 # Strip _comment fields
 cfg = {k: v for k, v in cfg.items() if not k.startswith('_comment')}
 # Rewrite MCP commands for *nix
@@ -266,6 +271,8 @@ with open('${TARGET_CONFIG}', 'w') as f:
     json.dump(cfg, f, indent=2)
 " 2>&1 | while IFS= read -r line; do info "$line"; done
   fi
+  MANIFEST_FILES+=("$TARGET_CONFIG")
+fi
 ok "config: $TARGET_CONFIG (tier=$TIER)"
 
 # ── Copy agents ────────────────────────────────────────────────────────────
@@ -543,7 +550,7 @@ fi
 # ── Summary ────────────────────────────────────────────────────────────────
 step "Summary"
 echo ""
-MCP_COUNT=13; [[ "$TIER" == "lean" ]] && MCP_COUNT=10; [[ "$TIER" == "full" ]] && MCP_COUNT=18
+MCP_COUNT=12; [[ "$TIER" == "lean" ]] && MCP_COUNT=10; [[ "$TIER" == "full" ]] && MCP_COUNT=15
 printf "  Tier:           %s\n" "$TIER"
 printf "  Config:         %s\n" "$TARGET_CONFIG"
 printf "  Agents:         8\n"
